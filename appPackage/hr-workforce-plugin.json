@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/copilot/plugin/v2.3/schema.json",
+  "schema_version": "v2.3",
+  "name_for_human": "HR Workforce Intelligence API",
+  "description_for_human": "Retrieves workforce KPIs, retention risk, attendance health, and HR report requests from the HR Workforce Intelligence Platform.",
+  "namespace": "hrWorkforce",
+  "functions": [
+    {
+      "name": "getWorkforceOverview",
+      "description": "Returns workforce health KPIs such as retention, attendance, productivity, and department risk bands."
+    },
+    {
+      "name": "getAgentWorkforceContext",
+      "description": "Returns a concise, safety-filtered workforce intelligence answer for Microsoft 365 Copilot responses."
+    },
+    {
+      "name": "attritionPredictions",
+      "description": "Returns explainable attrition risk and productivity prediction scores for scoped workforce populations."
+    },
+    {
+      "name": "generateReport",
+      "description": "Queues an auditable HR workforce report generation request."
+    }
+  ],
+  "runtimes": [
+    {
+      "type": "OpenApi",
+      "auth": {
+        "type": "OAuthPluginVault",
+        "reference_id": "${{HR_API_OAUTH_REFERENCE_ID}}"
+      },
+      "spec": {
+        "url": "apiSpecificationFile/openapi.yaml"
+      },
+      "run_for_functions": [
+        "getWorkforceOverview",
+        "getAgentWorkforceContext",
+        "attritionPredictions",
+        "generateReport"
+      ]
+    }
+  ]
+}

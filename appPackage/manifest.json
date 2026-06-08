@@ -1,0 +1,46 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.21/MicrosoftTeams.schema.json",
+  "manifestVersion": "1.21",
+  "version": "0.1.0",
+  "id": "${{TEAMS_APP_ID}}",
+  "developer": {
+    "name": "HR Workforce Intelligence",
+    "websiteUrl": "https://localhost:3000",
+    "privacyUrl": "https://localhost:3000/privacy",
+    "termsOfUseUrl": "https://localhost:3000/terms"
+  },
+  "name": {
+    "short": "Workforce IQ",
+    "full": "HR Workforce Intelligence Agent"
+  },
+  "description": {
+    "short": "A Microsoft 365 Copilot agent for workforce intelligence.",
+    "full": "Business-ready HR workforce intelligence agent for Microsoft 365 Copilot Chat. It combines Microsoft 365 work context with tenant-owned HR analytics APIs to answer workforce health, retention, attendance, and productivity questions."
+  },
+  "icons": {
+    "color": "color.png",
+    "outline": "outline.png"
+  },
+  "accentColor": "#115E59",
+  "copilotAgents": {
+    "declarativeAgents": [
+      {
+        "id": "hr-workforce-intelligence-agent",
+        "file": "declarativeAgent.json"
+      }
+    ]
+  },
+  "validDomains": [
+    "localhost",
+    "${{HR_API_HOSTNAME}}"
+  ],
+  "webApplicationInfo": {
+    "id": "${{ENTRA_APP_ID}}",
+    "resource": "api://${{ENTRA_APP_ID}}"
+  },
+  "authorization": {
+    "permissions": {
+      "resourceSpecific": []
+    }
+  }
+}

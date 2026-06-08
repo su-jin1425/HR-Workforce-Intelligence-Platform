@@ -1,0 +1,271 @@
+openapi: 3.0.3
+info:
+  title: HR Workforce Intelligence API
+  version: 0.1.0
+  description: API plugin surface for the Workforce IQ Microsoft 365 Copilot declarative agent.
+servers:
+  - url: https://localhost:8000/api/v1
+    description: Local development tunnel endpoint. Replace with an HTTPS dev tunnel or production host before sideloading.
+security:
+  - OAuth2: []
+paths:
+  /copilot/workforce-overview:
+    get:
+      operationId: getWorkforceOverview
+      summary: Get workforce overview
+      description: Returns aggregate workforce KPIs, department risk bands, and recommended actions.
+      parameters:
+        - name: department
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Optional department scope.
+      responses:
+        "200":
+          description: Workforce overview returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkforceOverview"
+  /copilot/agent-context:
+    post:
+      operationId: getAgentWorkforceContext
+      summary: Build Copilot workforce context
+      description: Returns a concise, citation-friendly context package for Microsoft 365 Copilot responses.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AgentContextRequest"
+      responses:
+        "200":
+          description: Agent context returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AgentContextResponse"
+  /predictions/attrition:
+    get:
+      operationId: attritionPredictions
+      summary: Get attrition predictions
+      description: Returns explainable attrition risk predictions for scoped employees.
+      parameters:
+        - name: department
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Attrition predictions returned.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Prediction"
+  /reports/generate:
+    post:
+      operationId: generateReport
+      summary: Queue HR report
+      description: Queues an auditable HR report generation request.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReportRequest"
+      responses:
+        "202":
+          description: Report generation request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportJob"
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://login.microsoftonline.com/${{TENANT_ID}}/oauth2/v2.0/authorize
+          tokenUrl: https://login.microsoftonline.com/${{TENANT_ID}}/oauth2/v2.0/token
+          scopes:
+            api://${{ENTRA_APP_ID}}/access_as_user: Access HR workforce intelligence APIs as the signed-in user.
+  schemas:
+    DepartmentKpi:
+      type: object
+      required:
+        - department
+        - employee_count
+        - active_count
+        - retention_rate
+        - average_productivity
+        - attendance_rate
+        - engagement_score
+        - risk_band
+      properties:
+        department:
+          type: string
+        employee_count:
+          type: integer
+        active_count:
+          type: integer
+        retention_rate:
+          type: number
+        average_productivity:
+          type: number
+        attendance_rate:
+          type: number
+        engagement_score:
+          type: number
+        risk_band:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+    WorkforceOverview:
+      type: object
+      required:
+        - summary_title
+        - as_of
+        - employee_count
+        - active_employee_count
+        - retention_rate
+        - average_productivity
+        - attendance_rate
+        - high_risk_employee_count
+        - departments
+        - recommended_actions
+        - data_classification
+      properties:
+        summary_title:
+          type: string
+        as_of:
+          type: string
+          format: date-time
+        employee_count:
+          type: integer
+        active_employee_count:
+          type: integer
+        retention_rate:
+          type: number
+        average_productivity:
+          type: number
+        attendance_rate:
+          type: number
+        high_risk_employee_count:
+          type: integer
+        departments:
+          type: array
+          items:
+            $ref: "#/components/schemas/DepartmentKpi"
+        recommended_actions:
+          type: array
+          items:
+            type: string
+        data_classification:
+          type: string
+    AgentContextRequest:
+      type: object
+      required:
+        - user_prompt
+      properties:
+        user_prompt:
+          type: string
+        department:
+          type: string
+          nullable: true
+        include_recommended_actions:
+          type: boolean
+          default: true
+    AgentContextResponse:
+      type: object
+      required:
+        - answer_brief
+        - overview
+        - citations
+        - safety_notes
+      properties:
+        answer_brief:
+          type: string
+        overview:
+          $ref: "#/components/schemas/WorkforceOverview"
+        citations:
+          type: array
+          items:
+            type: string
+        safety_notes:
+          type: array
+          items:
+            type: string
+    Prediction:
+      type: object
+      required:
+        - employee_id
+        - employee_name
+        - department
+        - attrition_risk_score
+        - productivity_prediction
+        - risk_band
+        - evidence
+      properties:
+        employee_id:
+          type: string
+        employee_name:
+          type: string
+        department:
+          type: string
+        attrition_risk_score:
+          type: number
+        productivity_prediction:
+          type: number
+        risk_band:
+          type: string
+          enum:
+            - low
+            - medium
+            - high
+        evidence:
+          type: array
+          items:
+            type: string
+    ReportRequest:
+      type: object
+      required:
+        - report_type
+        - requested_by
+      properties:
+        report_type:
+          type: string
+          enum:
+            - executive_summary
+            - department_health
+            - attrition_risk
+        department:
+          type: string
+          nullable: true
+        requested_by:
+          type: string
+          format: email
+    ReportJob:
+      type: object
+      required:
+        - report_id
+        - status
+        - message
+      properties:
+        report_id:
+          type: string
+        status:
+          type: string
+          enum:
+            - queued
+            - running
+            - complete
+            - failed
+        message:
+          type: string
